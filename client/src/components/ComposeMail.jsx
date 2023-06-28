@@ -9,6 +9,9 @@ import {
   Button,
 } from "@mui/material/";
 import { Close, DeleteOutline } from "@mui/icons-material";
+import useApi from "../hooks/useApi";
+import { API_URLS } from "../services/api.urls";
+
 const dialogStyle = {
   width: "90%",
   height: "80%",
@@ -56,17 +59,36 @@ const Footer = styled(Box)`
 
 const ComposeMail = ({ openDialog, setOpenDialog }) => {
   const [data, setData] = useState({});
-
+  const sentEmailService = useApi(API_URLS.saveSentEmails);
+  const saveDraftService = useApi(API_URLS.saveDraftEmails);
   const config = {
     Host: "smtp.elasticemail.com",
-    Username: "yashnarvekar17@yopmail.com",
-    Password: "1C35F91AD27915BB0DE10B8CA465077C5240",
+    Username: process.env.REACT_APP_USERNAME,
+    Password: process.env.REACT_APP_PASSWORD,
     Port: 2525,
   };
 
   const closeComposeMail = (e) => {
     e.preventDefault();
-    setOpenDialog(false);
+    const payload = {
+      to: data.to,
+      from: "yash.narvekar01@gmail.com",
+      subject: data.subject,
+      body: data.body,
+      data: new Date(),
+      image: "",
+      name: "Yash Narvekar",
+      starred: false,
+      type: "drafts",
+    };
+
+    saveDraftService.call(payload);
+
+    if (!saveDraftService.error) {
+      setOpenDialog(false);
+      setData({});
+    } else {
+    }
   };
 
   const sendMail = (e) => {
@@ -80,6 +102,26 @@ const ComposeMail = ({ openDialog, setOpenDialog }) => {
         Subject: data.subject,
         Body: data.body,
       }).then((message) => alert(message));
+    }
+
+    const payload = {
+      to: data.to,
+      from: "yash.narvekar01@gmail.com",
+      subject: data.subject,
+      body: data.body,
+      data: new Date(),
+      image: "",
+      name: "Yash Narvekar",
+      starred: false,
+      type: "sent",
+    };
+
+    sentEmailService.call(payload);
+
+    if (!sentEmailService.error) {
+      setOpenDialog(false);
+      setData({});
+    } else {
     }
     setOpenDialog(false);
   };
